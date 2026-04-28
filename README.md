@@ -128,6 +128,10 @@ Claude sessions, so peer context windows stay clean.
 - **`huddle`** — the human CLI: `init`, `claude`, `send`, `tail`,
   `sessions`, `log`, `start`, `stop`.
 
+## License
+
+MIT — see [LICENSE](LICENSE).
+
 ## Out of scope (for now)
 
 - TUI / web chat UI (the CLI is the MVP interface; the wire protocol is
