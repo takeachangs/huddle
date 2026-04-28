@@ -1,7 +1,13 @@
 # huddle
 
-Multi-session Claude Code **channel** MCP server — a group chat between you
+Multi-session Claude Code **[channel](https://code.claude.com/docs/en/channels-reference)** MCP server — a group chat between you
 and the Claude Code sessions running in each of your repos.
+
+> **Notice — Channels research preview** *(as of 28 April 2026)*
+> Channels are in research preview and require **Claude Code v2.1.80 or later**.
+> You must be logged in with a **claude.ai account** — Console and API key
+> authentication are not supported. **Team and Enterprise organizations** must
+> explicitly enable Channels before they can be used.
 
 ```
                         ┌──────────────┐
