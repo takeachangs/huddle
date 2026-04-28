@@ -15,12 +15,12 @@ export function renderRecord(r: TranscriptRecord, opts: RenderOpts = {}): string
     }
     case 'react': {
       const x = r as Extract<TranscriptRecord, { kind: 'react' }>
-      return `[${ts}] ${x.sender} ${x.emoji} → ${x.target_id}`
+      return `[${ts}] ${x.sender} ${x.emoji}`
     }
     case 'pass': {
       const x = r as Extract<TranscriptRecord, { kind: 'pass' }>
       const why = x.reason ? ` (${x.reason})` : ''
-      return `[${ts}] ${x.sender} · pass → ${x.target_id}${why}`
+      return `[${ts}] ${x.sender} · pass${why}`
     }
   }
 }
