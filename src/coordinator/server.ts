@@ -1,6 +1,6 @@
 import { createServer, type Server, type Socket } from 'node:net'
 import { unlinkSync, existsSync } from 'node:fs'
-import type { ClientFrame, Message } from '../shared/protocol.ts'
+import type { ClientFrame, Message, PassRecord, ReactRecord } from '../shared/protocol.ts'
 import { attachReader, writeFrame } from '../shared/ndjson.ts'
 import { SOCKET_PATH } from '../shared/paths.ts'
 import { ulid } from '../shared/ulid.ts'
@@ -11,7 +11,8 @@ import {
   unregisterSocket,
   subscribeTail,
   listSessions,
-  fanout,
+  fanoutMessage,
+  fanoutAuditOnly,
 } from './registry.ts'
 import { append, since, tail } from './transcript.ts'
 
@@ -67,11 +68,40 @@ function handleConnection(socket: Socket, onShutdown: () => void): void {
           sender: identity.name,
           mentions,
           text: frame.text,
+          kind: 'msg',
         }
         append(msg)
         // Excluding the bridge's own socket prevents Claude from receiving
         // its own reply back as a notification.
-        fanout(msg, identity.role === 'bridge' ? socket : undefined)
+        fanoutMessage(msg, identity.role === 'bridge' ? socket : undefined)
+        writeFrame(socket, { t: 'ack' })
+        return
+      }
+      case 'react': {
+        const record: ReactRecord = {
+          id: ulid(),
+          ts: new Date().toISOString(),
+          sender: identity.name,
+          kind: 'react',
+          target_id: frame.target_id,
+          emoji: frame.emoji,
+        }
+        append(record)
+        fanoutAuditOnly(record)
+        writeFrame(socket, { t: 'ack' })
+        return
+      }
+      case 'pass': {
+        const record: PassRecord = {
+          id: ulid(),
+          ts: new Date().toISOString(),
+          sender: identity.name,
+          kind: 'pass',
+          target_id: frame.target_id,
+          reason: frame.reason,
+        }
+        append(record)
+        fanoutAuditOnly(record)
         writeFrame(socket, { t: 'ack' })
         return
       }

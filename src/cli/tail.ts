@@ -1,13 +1,14 @@
 import { openCli } from './client.ts'
-import type { Message } from '../shared/protocol.ts'
+import type { TranscriptRecord } from '../shared/protocol.ts'
+import { renderRecord } from './render.ts'
 
 export async function tail(args: string[]): Promise<void> {
   const showHistory = !args.includes('--no-history')
   const cli = await openCli()
 
   cli.on(frame => {
-    if (frame.t === 'message') print(frame.msg)
-    if (frame.t === 'log') for (const m of frame.messages) print(m)
+    if (frame.t === 'tail_event') print(frame.record)
+    if (frame.t === 'log') for (const r of frame.messages) print(r)
   })
 
   if (showHistory) {
@@ -21,9 +22,6 @@ export async function tail(args: string[]): Promise<void> {
   })
 }
 
-function print(m: Message): void {
-  const ts = m.ts.slice(11, 19)
-  const tag = m.mentions.length ? `→${m.mentions.join(',')}` : ''
-  const line = `[${ts}] ${m.sender}${tag ? ' ' + tag : ''}: ${m.text}\n`
-  process.stdout.write(line)
+function print(r: TranscriptRecord): void {
+  process.stdout.write(renderRecord(r, { time: 'short' }) + '\n')
 }

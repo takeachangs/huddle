@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, mkdirSync, appendFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { TRANSCRIPT_PATH } from '../shared/paths.ts'
-import type { Message } from '../shared/protocol.ts'
+import type { TranscriptRecord } from '../shared/protocol.ts'
 
 let dirReady = false
 function ensureDir(): void {
@@ -10,19 +10,19 @@ function ensureDir(): void {
   dirReady = true
 }
 
-export function append(msg: Message): void {
+export function append(record: TranscriptRecord): void {
   ensureDir()
-  appendFileSync(TRANSCRIPT_PATH, JSON.stringify(msg) + '\n', 'utf8')
+  appendFileSync(TRANSCRIPT_PATH, JSON.stringify(record) + '\n', 'utf8')
 }
 
-function readAll(): Message[] {
+function readAll(): TranscriptRecord[] {
   if (!existsSync(TRANSCRIPT_PATH)) return []
   const raw = readFileSync(TRANSCRIPT_PATH, 'utf8')
-  const out: Message[] = []
+  const out: TranscriptRecord[] = []
   for (const line of raw.split('\n')) {
     if (!line) continue
     try {
-      out.push(JSON.parse(line) as Message)
+      out.push(JSON.parse(line) as TranscriptRecord)
     } catch {
       // skip corrupted line
     }
@@ -30,13 +30,13 @@ function readAll(): Message[] {
   return out
 }
 
-export function tail(limit = 50): Message[] {
+export function tail(limit = 50): TranscriptRecord[] {
   const all = readAll()
   return all.slice(Math.max(0, all.length - limit))
 }
 
-export function since(iso: string, limit = 200): Message[] {
+export function since(iso: string, limit = 200): TranscriptRecord[] {
   const all = readAll()
-  const filtered = all.filter(m => m.ts >= iso)
+  const filtered = all.filter(r => r.ts >= iso)
   return filtered.slice(0, limit)
 }

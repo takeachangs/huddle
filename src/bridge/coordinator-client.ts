@@ -37,13 +37,25 @@ export class CoordinatorClient {
   }
 
   send(text: string, mentions?: string[]): void {
-    if (!this.socket || this.socket.destroyed) return
-    writeFrame(this.socket, { t: 'send', text, mentions } satisfies ClientFrame)
+    this.write({ t: 'send', text, mentions })
+  }
+
+  react(target_id: string, emoji: string): void {
+    this.write({ t: 'react', target_id, emoji })
+  }
+
+  pass(target_id: string, reason?: string): void {
+    this.write({ t: 'pass', target_id, reason })
   }
 
   close(): void {
     if (!this.socket || this.socket.destroyed) return
     writeFrame(this.socket, { t: 'bye' } satisfies ClientFrame)
     this.socket.end()
+  }
+
+  private write(frame: ClientFrame): void {
+    if (!this.socket || this.socket.destroyed) return
+    writeFrame(this.socket, frame)
   }
 }

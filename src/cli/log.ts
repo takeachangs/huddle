@@ -1,5 +1,5 @@
 import { openCli, requestReply } from './client.ts'
-import type { Message } from '../shared/protocol.ts'
+import { renderRecord } from './render.ts'
 
 export async function log(args: string[]): Promise<void> {
   let since: string | undefined
@@ -21,11 +21,8 @@ export async function log(args: string[]): Promise<void> {
   }
   const cli = await openCli()
   const reply = await requestReply(cli, { t: 'read_log', since, limit }, ['log'])
-  for (const m of reply.messages) print(m)
+  for (const r of reply.messages) {
+    process.stdout.write(renderRecord(r, { time: 'iso' }) + '\n')
+  }
   cli.close()
-}
-
-function print(m: Message): void {
-  const tag = m.mentions.length ? `→${m.mentions.join(',')}` : ''
-  process.stdout.write(`${m.ts}  ${m.sender}${tag ? ' ' + tag : ''}: ${m.text}\n`)
 }
