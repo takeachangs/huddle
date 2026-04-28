@@ -72,38 +72,41 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 mcp.setRequestHandler(CallToolRequestSchema, async req => {
   const args = (req.params.arguments ?? {}) as Record<string, unknown>
+  const str = (k: string): string => typeof args[k] === 'string' ? (args[k] as string).trim() : ''
+
   switch (req.params.name) {
     case 'reply': {
-      const text = typeof args.text === 'string' ? args.text : ''
-      if (!text.trim()) {
-        return { content: [{ type: 'text', text: 'reply: text is required' }], isError: true }
-      }
+      const text = str('text')
+      if (!text) return toolError('reply: text is required')
       const mentions = normalizeMentions(Array.isArray(args.mentions) ? (args.mentions as string[]) : undefined)
       client.send(text, mentions)
-      return { content: [{ type: 'text', text: 'sent' }] }
+      return toolOk('sent')
     }
     case 'react': {
-      const message_id = typeof args.message_id === 'string' ? args.message_id : ''
-      const emoji = typeof args.emoji === 'string' ? args.emoji : ''
-      if (!message_id || !emoji) {
-        return { content: [{ type: 'text', text: 'react: message_id and emoji are required' }], isError: true }
-      }
+      const message_id = str('message_id')
+      const emoji = str('emoji')
+      if (!message_id || !emoji) return toolError('react: message_id and emoji are required')
       client.react(message_id, emoji)
-      return { content: [{ type: 'text', text: `reacted ${emoji}` }] }
+      return toolOk(`reacted ${emoji}`)
     }
     case 'pass': {
-      const message_id = typeof args.message_id === 'string' ? args.message_id : ''
-      if (!message_id) {
-        return { content: [{ type: 'text', text: 'pass: message_id is required' }], isError: true }
-      }
-      const reason = typeof args.reason === 'string' ? args.reason : undefined
+      const message_id = str('message_id')
+      if (!message_id) return toolError('pass: message_id is required')
+      const reason = str('reason') || undefined
       client.pass(message_id, reason)
-      return { content: [{ type: 'text', text: 'passed' }] }
+      return toolOk('passed')
     }
     default:
-      return { content: [{ type: 'text', text: `unknown tool: ${req.params.name}` }], isError: true }
+      return toolError(`unknown tool: ${req.params.name}`)
   }
 })
+
+function toolOk(text: string) {
+  return { content: [{ type: 'text' as const, text }] }
+}
+function toolError(text: string) {
+  return { content: [{ type: 'text' as const, text }], isError: true }
+}
 
 const client = new CoordinatorClient({
   session: sessionName,

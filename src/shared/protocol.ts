@@ -4,8 +4,7 @@ export interface Message {
   sender: string
   mentions: string[]
   text: string
-  /** Discriminator for transcript records. Absent on legacy lines = "msg". */
-  kind?: 'msg'
+  kind: 'msg'
 }
 
 export interface ReactRecord {

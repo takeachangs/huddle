@@ -7,20 +7,14 @@ interface RenderOpts {
 
 export function renderRecord(r: TranscriptRecord, opts: RenderOpts = {}): string {
   const ts = opts.time === 'iso' ? r.ts : r.ts.slice(11, 19)
-  const kind = r.kind ?? 'msg'
-  switch (kind) {
-    case 'msg': {
-      const m = r as Extract<TranscriptRecord, { kind?: 'msg' }>
-      return `[${ts}] ${m.sender}: ${m.text}`
-    }
-    case 'react': {
-      const x = r as Extract<TranscriptRecord, { kind: 'react' }>
-      return `[${ts}] ${x.sender} ${x.emoji}`
-    }
+  switch (r.kind) {
+    case 'msg':
+      return `[${ts}] ${r.sender}: ${r.text}`
+    case 'react':
+      return `[${ts}] ${r.sender} ${r.emoji}`
     case 'pass': {
-      const x = r as Extract<TranscriptRecord, { kind: 'pass' }>
-      const why = x.reason ? ` (${x.reason})` : ''
-      return `[${ts}] ${x.sender} · pass${why}`
+      const why = r.reason ? ` (${r.reason})` : ''
+      return `[${ts}] ${r.sender} · pass${why}`
     }
   }
 }
