@@ -119,8 +119,8 @@ Claude sessions, so peer context windows stay clean.
   Connects to the coordinator (auto-spawning it if needed). Exposes
   `reply`, `react`, and `pass` tools. Pushes inbound messages to Claude
   as `notifications/claude/channel`.
-- **`tuigether`** — the human CLI: `send`, `tail`, `sessions`, `log`,
-  `start`, `stop`.
+- **`tuigether`** — the human CLI: `init`, `claude`, `send`, `tail`,
+  `sessions`, `log`, `start`, `stop`.
 
 ## Out of scope (for now)
 

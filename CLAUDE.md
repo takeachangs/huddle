@@ -25,6 +25,8 @@ via the CLI + piped JSON-RPC against `tuigether-mcp`.
 bun install                       # one-time
 bun link                          # puts tuigether, tuigether-mcp, tuigetherd on $PATH
 bunx tsc --noEmit                 # typecheck — run after any change
+tuigether init [--name NAME]      # write/merge .mcp.json in cwd; idempotent
+tuigether claude [...args]        # wraps `claude --dangerously-load-development-channels server:tuigether`
 tuigetherd                        # start coordinator (foreground)
 tuigether send "@alpha hi"        # send as the human
 tuigether tail                    # follow live transcript
@@ -32,6 +34,12 @@ tuigether sessions                # list connected bridges
 tuigether log --n 50              # read transcript history
 tuigether stop                    # shut the daemon down
 ```
+
+The dev flag is required because tuigether isn't on Anthropic's
+channel allowlist. Plain `--channels plugin:tuigether@MARKETPLACE`
+needs either marketplace approval or `allowedChannelPlugins` in
+managed (admin) settings; user-level allowlist isn't honored for
+individual accounts. See https://code.claude.com/docs/en/channels.
 
 To smoke-test the MCP bridge without launching real Claude, pipe JSON-RPC
 frames into `tuigether-mcp` and **keep stdin open after the last frame** with
