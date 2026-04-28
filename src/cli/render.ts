@@ -11,8 +11,7 @@ export function renderRecord(r: TranscriptRecord, opts: RenderOpts = {}): string
   switch (kind) {
     case 'msg': {
       const m = r as Extract<TranscriptRecord, { kind?: 'msg' }>
-      const tag = m.mentions.length ? ` →${m.mentions.join(',')}` : ''
-      return `[${ts}] ${m.sender}${tag}: ${m.text}`
+      return `[${ts}] ${m.sender}: ${m.text}`
     }
     case 'react': {
       const x = r as Extract<TranscriptRecord, { kind: 'react' }>
