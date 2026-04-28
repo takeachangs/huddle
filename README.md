@@ -57,27 +57,63 @@ and the Claude Code sessions running in each of your repos.
    tuigether log --n 50                  # read history
    ```
 
-## How addressing works
+## How sessions decide what to do
 
-Every message is delivered to every connected session — that's the group chat.
-The `mentions` field is a routing **hint** in the message metadata. Each
-Claude session is instructed to:
+Every chat message is delivered to every connected session. The `mentions`
+field is a routing hint, not a filter. Each session must close out every
+inbound message with **exactly one of three tools**:
 
-- Always respond when its name is mentioned (or the message is to "all", or
-  it's a user message with no mentions).
-- Otherwise treat peer-to-peer chatter as observation only.
+| Tool | Visible? | When to use |
+|---|---|---|
+| **`reply`** | Yes (full message) | Substantive answer. **Mandatory** when you are `@mentioned`. |
+| **`react`** | To you only (in `tail`/`log`) | Tiny acknowledgment (`👀`, `👍`, `⏳`). Peer Claudes are not pinged. |
+| **`pass`** | Audit-only (in `log`) | Considered, no action — not relevant to this session's repo. |
 
-Sessions can `@mention` each other too (e.g. "@repo-b can you also check?").
+Decision flow each session is taught:
+
+```
+mentions includes me      → reply (mandatory)
+mentions a different peer → pass (not your conversation)
+broadcast / no mentions   → relevant to your repo?
+                              yes & substantive → reply
+                              yes & FYI         → react
+                              no                → pass
+```
+
+This keeps each session's context window light: one or two-line
+acknowledgments instead of full chat turns, and silent skips for messages
+that aren't theirs.
+
+## Example
+
+Two sessions (`api-server`, `frontend`) and a user broadcast:
+
+```
+[07:33:41] user: we should bump the API rate limit before launch
+[07:33:41] api-server: @user on it. current limit is 100/min, bumping to 500.
+[07:33:42] frontend 👀
+[07:33:42] user: @api-server any auth changes needed?
+[07:33:42] api-server: @user no, the existing JWT middleware handles it.
+[07:33:43] frontend · pass (backend conversation, not my repo)
+[07:33:44] user: btw the new login screen mockup is in figma
+[07:33:44] api-server · pass (UI concern, no backend impact)
+[07:33:44] frontend: @user pulling it now, will wire up tomorrow
+```
+
+`react` and `pass` lines are visible only to you (the human) in
+`tuigether tail` / `log`. They are never pushed as notifications to other
+Claude sessions, so peer context windows stay clean.
 
 ## Architecture
 
 - **`tuigetherd`** — long-running coordinator. Listens on
-  `~/.claude/channels/tuigether/coordinator.sock`. Persists every message to
-  `transcript.jsonl` (append-only, restart-survivable).
+  `~/.claude/channels/tuigether/coordinator.sock`. Persists every record
+  (msg / react / pass) to `transcript.jsonl` (append-only,
+  restart-survivable).
 - **`tuigether-mcp`** — the per-session MCP bridge that Claude Code spawns.
-  Connects to the coordinator (auto-spawning it if needed). Exposes the
-  `reply` tool. Pushes inbound messages to Claude as
-  `notifications/claude/channel`.
+  Connects to the coordinator (auto-spawning it if needed). Exposes
+  `reply`, `react`, and `pass` tools. Pushes inbound messages to Claude
+  as `notifications/claude/channel`.
 - **`tuigether`** — the human CLI: `send`, `tail`, `sessions`, `log`,
   `start`, `stop`.
 
@@ -87,4 +123,5 @@ Sessions can `@mention` each other too (e.g. "@repo-b can you also check?").
   designed so a UI can attach later)
 - Multiple rooms (single global `chat_id="main"`)
 - Permission relay (`claude/channel/permission`)
+- Stop-hook enforcement that every inbound got a verb (planned)
 - Allowlists, file attachments, cross-machine
