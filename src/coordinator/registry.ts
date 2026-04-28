@@ -49,7 +49,7 @@ export function listSessions(): SessionInfo[] {
  * Notify other Claude sessions of a new chat message.
  *   - Bridges: every one except the originator (sessions don't echo their own
  *     replies back into their own context).
- *   - Tail subscribers: every CLI watching `tuigether tail` (including any
+ *   - Tail subscribers: every CLI watching `huddle tail` (including any
  *     that originated the message — they want to see it rendered).
  */
 export function fanoutMessage(msg: Message, originBridgeSocket?: Socket): void {

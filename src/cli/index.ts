@@ -25,29 +25,29 @@ async function main(): Promise<void> {
     case '--help':
     case '-h':       return printHelp()
     default:
-      process.stderr.write(`tuigether: unknown command "${cmd}"\n\n`)
+      process.stderr.write(`huddle: unknown command "${cmd}"\n\n`)
       printHelp()
       process.exit(2)
   }
 }
 
 function printHelp(): void {
-  process.stdout.write(`tuigether — multi-session Claude Code group chat
+  process.stdout.write(`huddle — multi-session Claude Code group chat
 
 Usage:
-  tuigether init [--name SESSION]         wire current dir up to tuigether (writes .mcp.json)
-  tuigether claude [...claude args]       launch claude with the channel flag
-  tuigether send [--to NAME] "message"    send a message (inline @mentions also parsed)
-  tuigether tail                          stream the live transcript (Ctrl-C to stop)
-  tuigether sessions                      list connected Claude sessions
-  tuigether log [--since ISO] [--n N]     read transcript history
-  tuigether start                         start the coordinator daemon
-  tuigether stop                          stop the coordinator daemon
-  tuigether help                          this message
+  huddle init [--name SESSION]         wire current dir up to huddle (writes .mcp.json)
+  huddle claude [...claude args]       launch claude with the channel flag
+  huddle send [--to NAME] "message"    send a message (inline @mentions also parsed)
+  huddle tail                          stream the live transcript (Ctrl-C to stop)
+  huddle sessions                      list connected Claude sessions
+  huddle log [--since ISO] [--n N]     read transcript history
+  huddle start                         start the coordinator daemon
+  huddle stop                          stop the coordinator daemon
+  huddle help                          this message
 `)
 }
 
 main().catch(err => {
-  process.stderr.write(`tuigether: ${err instanceof Error ? err.message : err}\n`)
+  process.stderr.write(`huddle: ${err instanceof Error ? err.message : err}\n`)
   process.exit(1)
 })

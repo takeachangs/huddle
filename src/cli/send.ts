@@ -32,6 +32,6 @@ export async function send(args: string[]): Promise<void> {
 }
 
 function printHelp(): void {
-  process.stderr.write(`Usage: tuigether send [--to NAME] [--to NAME] ... "your message"\n` +
+  process.stderr.write(`Usage: huddle send [--to NAME] [--to NAME] ... "your message"\n` +
     `  Inline @mentions in the message body are also parsed.\n`)
 }

@@ -9,7 +9,7 @@ mkdirSync(STATE_DIR, { recursive: true })
 try {
   const existing = Number(readFileSync(PID_PATH, 'utf8'))
   if (existing && isProcessAlive(existing)) {
-    process.stderr.write(`tuigetherd already running (pid ${existing})\n`)
+    process.stderr.write(`huddled already running (pid ${existing})\n`)
     process.exit(0)
   }
   unlinkSync(PID_PATH)
@@ -22,11 +22,11 @@ writeFileSync(PID_PATH, String(process.pid), 'utf8')
 const server = start(shutdown)
 
 server.on('listening', () => {
-  process.stderr.write(`tuigetherd listening on ${SOCKET_PATH} (pid ${process.pid})\n`)
+  process.stderr.write(`huddled listening on ${SOCKET_PATH} (pid ${process.pid})\n`)
 })
 
 server.on('error', err => {
-  process.stderr.write(`tuigetherd: ${err}\n`)
+  process.stderr.write(`huddled: ${err}\n`)
   cleanup()
   process.exit(1)
 })
@@ -35,7 +35,7 @@ let shuttingDown = false
 function shutdown(): void {
   if (shuttingDown) return
   shuttingDown = true
-  process.stderr.write('tuigetherd: shutting down\n')
+  process.stderr.write('huddled: shutting down\n')
   server.close(() => {
     cleanup()
     process.exit(0)

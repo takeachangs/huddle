@@ -5,7 +5,7 @@ import { PID_PATH } from '../shared/paths.ts'
 
 export async function stop(): Promise<void> {
   if (!(await isDaemonAlive())) {
-    process.stdout.write('tuigetherd is not running\n')
+    process.stdout.write('huddled is not running\n')
     return
   }
   const cli = await openCli({ autostart: false })
@@ -13,7 +13,7 @@ export async function stop(): Promise<void> {
   cli.close()
   for (let i = 0; i < 20; i++) {
     if (!(await isDaemonAlive())) {
-      process.stdout.write('tuigetherd stopped\n')
+      process.stdout.write('huddled stopped\n')
       return
     }
     await sleep(100)
@@ -25,5 +25,5 @@ export async function stop(): Promise<void> {
   } catch {
     // pidfile already gone — nothing to do.
   }
-  process.stdout.write('tuigetherd stopped (forced)\n')
+  process.stdout.write('huddled stopped (forced)\n')
 }

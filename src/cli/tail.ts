@@ -16,7 +16,7 @@ export async function tail(args: string[]): Promise<void> {
   }
   cli.send({ t: 'subscribe_tail' })
 
-  process.stderr.write('tuigether: tailing (Ctrl-C to stop)\n')
+  process.stderr.write('huddle: tailing (Ctrl-C to stop)\n')
   await new Promise<void>(res => {
     process.on('SIGINT', () => { cli.close(); res() })
   })

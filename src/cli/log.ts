@@ -15,7 +15,7 @@ export async function log(args: string[]): Promise<void> {
       limit = Number(v)
       if (!Number.isFinite(limit) || limit <= 0) throw new Error('--n must be positive')
     } else if (a === '--help' || a === '-h') {
-      process.stderr.write(`Usage: tuigether log [--since ISO_TS] [--n LIMIT]\n`)
+      process.stderr.write(`Usage: huddle log [--since ISO_TS] [--n LIMIT]\n`)
       return
     }
   }

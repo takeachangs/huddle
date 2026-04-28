@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`tuigether` is a Claude Code **channel** MCP server (per
+`huddle` is a Claude Code **channel** MCP server (per
 https://code.claude.com/docs/en/channels-reference) that hosts a multi-party
 group chat between one human and N Claude Code sessions, each running in its
 own repo. It is the only known multi-session implementation of the channel
@@ -19,30 +19,30 @@ Three reference resources for any non-trivial change:
 ## Commands
 
 This project has no test suite or build step. Verification is manual end-to-end
-via the CLI + piped JSON-RPC against `tuigether-mcp`.
+via the CLI + piped JSON-RPC against `huddle-mcp`.
 
 ```sh
 bun install                       # one-time
-bun link                          # puts tuigether, tuigether-mcp, tuigetherd on $PATH
+bun link                          # puts huddle, huddle-mcp, huddled on $PATH
 bunx tsc --noEmit                 # typecheck — run after any change
-tuigether init [--name NAME]      # write/merge .mcp.json in cwd; idempotent
-tuigether claude [...args]        # wraps `claude --dangerously-load-development-channels server:tuigether`
-tuigetherd                        # start coordinator (foreground)
-tuigether send "@alpha hi"        # send as the human
-tuigether tail                    # follow live transcript
-tuigether sessions                # list connected bridges
-tuigether log --n 50              # read transcript history
-tuigether stop                    # shut the daemon down
+huddle init [--name NAME]      # write/merge .mcp.json in cwd; idempotent
+huddle claude [...args]        # wraps `claude --dangerously-load-development-channels server:huddle`
+huddled                        # start coordinator (foreground)
+huddle send "@alpha hi"        # send as the human
+huddle tail                    # follow live transcript
+huddle sessions                # list connected bridges
+huddle log --n 50              # read transcript history
+huddle stop                    # shut the daemon down
 ```
 
-The dev flag is required because tuigether isn't on Anthropic's
-channel allowlist. Plain `--channels plugin:tuigether@MARKETPLACE`
+The dev flag is required because huddle isn't on Anthropic's
+channel allowlist. Plain `--channels plugin:huddle@MARKETPLACE`
 needs either marketplace approval or `allowedChannelPlugins` in
 managed (admin) settings; user-level allowlist isn't honored for
 individual accounts. See https://code.claude.com/docs/en/channels.
 
 To smoke-test the MCP bridge without launching real Claude, pipe JSON-RPC
-frames into `tuigether-mcp` and **keep stdin open after the last frame** with
+frames into `huddle-mcp` and **keep stdin open after the last frame** with
 a trailing `sleep`:
 
 ```sh
@@ -51,7 +51,7 @@ a trailing `sleep`:
 {"jsonrpc":"2.0","method":"notifications/initialized"}
 {"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"reply","arguments":{"text":"hi"}}}
 EOF
-sleep 0.5 ) | TUIGETHER_SESSION=alpha tuigether-mcp
+sleep 0.5 ) | HUDDLE_SESSION=alpha huddle-mcp
 ```
 
 The trailing `sleep` is required: stdin EOF triggers shutdown, and without a
@@ -70,21 +70,21 @@ shared state.**
 Claude session A          Claude session B          Claude session C
         │ stdio                  │ stdio                  │ stdio
         ▼                        ▼                        ▼
-   tuigether-mcp             tuigether-mcp             tuigether-mcp
+   huddle-mcp             huddle-mcp             huddle-mcp
    (per-session bridge)      (per-session bridge)      (per-session bridge)
         │                         │                         │
-        └────────── unix socket ──┴─── ~/.claude/channels/tuigether/coordinator.sock
+        └────────── unix socket ──┴─── ~/.claude/channels/huddle/coordinator.sock
                                   │
                                   ▼
-                        tuigetherd (coordinator)
+                        huddled (coordinator)
                                   │
                                   ▼
-                          tuigether (CLI)
+                          huddle (CLI)
 ```
 
 **Coordinator daemon** (`src/coordinator/`) — listens on the unix socket,
 holds the live session registry, persists every record to
-`~/.claude/channels/tuigether/transcript.jsonl` (append-only), routes
+`~/.claude/channels/huddle/transcript.jsonl` (append-only), routes
 messages. Lazy-spawned by the bridge or CLI on first connect.
 
 **Per-session MCP bridge** (`src/bridge/`) — what Claude Code spawns over
@@ -94,7 +94,7 @@ messages to Claude as `notifications/claude/channel` with the `<channel ...>`
 meta the docs prescribe. Session name defaults to `path.basename(process.cwd())`
 because Claude Code does NOT expose any session/conversation ID to MCP servers
 (this is a deliberate isolation boundary; we cannot auto-derive a session
-identity any other way). Override with `TUIGETHER_SESSION=name`.
+identity any other way). Override with `HUDDLE_SESSION=name`.
 
 **CLI** (`src/cli/`) — the human-facing client. `send`, `tail`, `sessions`,
 `log`, `start`, `stop`. The MVP "UI" until a TUI/web UI exists.
@@ -145,7 +145,7 @@ guarantees react/pass don't pollute peer context windows.
 
 ## State on disk
 
-Everything lives under `~/.claude/channels/tuigether/`:
+Everything lives under `~/.claude/channels/huddle/`:
 - `coordinator.sock` — listening socket (deleted on clean shutdown)
 - `coordinator.pid` — pidfile (TOCTOU-safe try/catch read in `coordinator/index.ts`)
 - `transcript.jsonl` — append-only NDJSON of `TranscriptRecord` union

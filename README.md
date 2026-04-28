@@ -1,4 +1,4 @@
-# tuigether
+# huddle
 
 Multi-session Claude Code **channel** MCP server — a group chat between you
 and the Claude Code sessions running in each of your repos.
@@ -9,7 +9,7 @@ and the Claude Code sessions running in each of your repos.
                         └──────┬───────┘
                                │
           ┌────────────────────┴────────────────────┐
-          │           tuigetherd (daemon)           │
+          │           huddled (daemon)           │
           │  transcript • routing • live registry   │
           └───┬────────────┬────────────┬───────────┘
               │            │            │
@@ -28,26 +28,26 @@ and the Claude Code sessions running in each of your repos.
    bun link
    ```
 
-   That puts `tuigether`, `tuigether-mcp`, and `tuigetherd` on your `$PATH`.
+   That puts `huddle`, `huddle-mcp`, and `huddled` on your `$PATH`.
 
 2. In each repo where you want a Claude session to join the chat:
 
    ```sh
    cd ~/repos/api-server
-   tuigether init                # writes/merges .mcp.json
-   tuigether init --name custom  # override the session name (default: cwd basename)
+   huddle init                # writes/merges .mcp.json
+   huddle init --name custom  # override the session name (default: cwd basename)
    ```
 
-3. Launch Claude in each repo with the channel flag — `tuigether claude`
+3. Launch Claude in each repo with the channel flag — `huddle claude`
    wraps it for you:
 
    ```sh
-   tuigether claude              # = claude --dangerously-load-development-channels server:tuigether
-   tuigether claude --resume     # any extra args pass through to claude
+   huddle claude              # = claude --dangerously-load-development-channels server:huddle
+   huddle claude --resume     # any extra args pass through to claude
    ```
 
    The dev flag is required during the channels research preview because
-   custom channels aren't on Anthropic's allowlist; once tuigether is
+   custom channels aren't on Anthropic's allowlist; once huddle is
    approved (or you allowlist it via org policy) it'll switch to plain
    `--channels`. Channels also require Claude Code v2.1.80+ and claude.ai
    login (no API-key auth).
@@ -55,11 +55,11 @@ and the Claude Code sessions running in each of your repos.
 4. From any terminal, talk to them:
 
    ```sh
-   tuigether sessions                    # list connected sessions
-   tuigether send "hi everyone"          # broadcast
-   tuigether send "@repo-a check api.py" # direct (still visible to all)
-   tuigether tail                        # follow live transcript
-   tuigether log --n 50                  # read history
+   huddle sessions                    # list connected sessions
+   huddle send "hi everyone"          # broadcast
+   huddle send "@repo-a check api.py" # direct (still visible to all)
+   huddle tail                        # follow live transcript
+   huddle log --n 50                  # read history
    ```
 
 ## How sessions decide what to do
@@ -106,20 +106,20 @@ Two sessions (`api-server`, `frontend`) and a user broadcast:
 ```
 
 `react` and `pass` lines are visible only to you (the human) in
-`tuigether tail` / `log`. They are never pushed as notifications to other
+`huddle tail` / `log`. They are never pushed as notifications to other
 Claude sessions, so peer context windows stay clean.
 
 ## Architecture
 
-- **`tuigetherd`** — long-running coordinator. Listens on
-  `~/.claude/channels/tuigether/coordinator.sock`. Persists every record
+- **`huddled`** — long-running coordinator. Listens on
+  `~/.claude/channels/huddle/coordinator.sock`. Persists every record
   (msg / react / pass) to `transcript.jsonl` (append-only,
   restart-survivable).
-- **`tuigether-mcp`** — the per-session MCP bridge that Claude Code spawns.
+- **`huddle-mcp`** — the per-session MCP bridge that Claude Code spawns.
   Connects to the coordinator (auto-spawning it if needed). Exposes
   `reply`, `react`, and `pass` tools. Pushes inbound messages to Claude
   as `notifications/claude/channel`.
-- **`tuigether`** — the human CLI: `init`, `claude`, `send`, `tail`,
+- **`huddle`** — the human CLI: `init`, `claude`, `send`, `tail`,
   `sessions`, `log`, `start`, `stop`.
 
 ## Out of scope (for now)

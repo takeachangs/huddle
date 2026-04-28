@@ -1,13 +1,13 @@
 {
-  "name": "tuigether",
+  "name": "huddle",
   "version": "0.1.0",
   "description": "Multi-session Claude Code channel: a group chat between you and your Claude sessions across repos.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "tuigether": "./src/cli/index.ts",
-    "tuigether-mcp": "./src/bridge/index.ts",
-    "tuigetherd": "./src/coordinator/index.ts"
+    "huddle": "./src/cli/index.ts",
+    "huddle-mcp": "./src/bridge/index.ts",
+    "huddled": "./src/coordinator/index.ts"
   },
   "scripts": {
     "start:daemon": "bun src/coordinator/index.ts",

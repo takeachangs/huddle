@@ -12,10 +12,10 @@ import { normalizeMentions } from '../shared/mentions.ts'
 import { CHAT_ID, MENTION_ALL } from '../shared/constants.ts'
 import type { Message } from '../shared/protocol.ts'
 
-const sessionName = (process.env.TUIGETHER_SESSION ?? basename(process.cwd())).toLowerCase()
+const sessionName = (process.env.HUDDLE_SESSION ?? basename(process.cwd())).toLowerCase()
 
 const mcp = new Server(
-  { name: 'tuigether', version: '0.2.0' },
+  { name: 'huddle', version: '0.2.0' },
   {
     capabilities: {
       tools: {},
@@ -29,7 +29,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: 'reply',
-      description: 'Post a substantive message to the tuigether group chat. MANDATORY when you are @mentioned. Pass `mentions` (e.g. ["user"], ["repo-b"], or omit for broadcast) to direct routing.',
+      description: 'Post a substantive message to the huddle group chat. MANDATORY when you are @mentioned. Pass `mentions` (e.g. ["user"], ["repo-b"], or omit for broadcast) to direct routing.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -128,7 +128,7 @@ const client = new CoordinatorClient({
     })
   },
   onDisconnect: () => {
-    process.stderr.write('tuigether-mcp: coordinator disconnected\n')
+    process.stderr.write('huddle-mcp: coordinator disconnected\n')
   },
 })
 
@@ -136,7 +136,7 @@ const client = new CoordinatorClient({
 // reply() can fire before the socket is up and silently drop the message.
 // Cold-start cost: 150ms-2s when the daemon isn't already running.
 await client.connect()
-process.stderr.write(`tuigether-mcp: connected as "${sessionName}"\n`)
+process.stderr.write(`huddle-mcp: connected as "${sessionName}"\n`)
 await mcp.connect(new StdioServerTransport())
 
 let shuttingDown = false

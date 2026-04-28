@@ -1,5 +1,5 @@
 {
-  "name": "tuigether",
+  "name": "huddle",
   "description": "Multi-session Claude Code channel: a group chat between you and the Claude Code sessions running in each of your repos.",
   "version": "0.2.0",
   "keywords": ["channel", "mcp", "groupchat", "multi-session"]
