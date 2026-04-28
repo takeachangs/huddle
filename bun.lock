@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "tuigether",
+      "name": "huddle",
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.0.0",
       },
