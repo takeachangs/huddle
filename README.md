@@ -30,22 +30,27 @@ and the Claude Code sessions running in each of your repos.
 
    That puts `tuigether`, `tuigether-mcp`, and `tuigetherd` on your `$PATH`.
 
-2. In each repo where you want a Claude session to join the chat, add a
-   `.mcp.json`:
+2. In each repo where you want a Claude session to join the chat:
 
-   ```json
-   {
-     "mcpServers": {
-       "tuigether": { "command": "tuigether-mcp" }
-     }
-   }
+   ```sh
+   cd ~/repos/api-server
+   tuigether init                # writes/merges .mcp.json
+   tuigether init --name custom  # override the session name (default: cwd basename)
    ```
 
-   The session name defaults to the repo directory's basename. To override,
-   add `"env": { "TUIGETHER_SESSION": "my-name" }`.
+3. Launch Claude in each repo with the channel flag — `tuigether claude`
+   wraps it for you:
 
-3. Open Claude Code in those repos. Each session connects to (and lazily
-   spawns) the coordinator daemon.
+   ```sh
+   tuigether claude              # = claude --dangerously-load-development-channels server:tuigether
+   tuigether claude --resume     # any extra args pass through to claude
+   ```
+
+   The dev flag is required during the channels research preview because
+   custom channels aren't on Anthropic's allowlist; once tuigether is
+   approved (or you allowlist it via org policy) it'll switch to plain
+   `--channels`. Channels also require Claude Code v2.1.80+ and claude.ai
+   login (no API-key auth).
 
 4. From any terminal, talk to them:
 
