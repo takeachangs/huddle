@@ -1,0 +1,37 @@
+name: Feature request
+description: A concrete addition or change to huddle
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      placeholder: What can't you do today, or what's painful?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      placeholder: What would you add or change?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      placeholder: Other approaches you thought about and why you ruled them out
+
+  - type: dropdown
+    id: protocol
+    attributes:
+      label: Does this touch the wire protocol or fanout rules?
+      description: Changes to `src/shared/protocol.ts` or the fanout split in `src/coordinator/registry.ts` need design discussion before code — a mistake there affects both the wire format and on-disk transcript.
+      options:
+        - "No"
+        - "Yes"
+        - "Not sure"
+    validations:
+      required: true

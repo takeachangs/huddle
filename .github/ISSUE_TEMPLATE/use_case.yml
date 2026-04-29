@@ -1,0 +1,40 @@
+name: Use case idea
+description: A workflow or interaction pattern you'd want multiple Claude sessions to support
+labels: [discussion, use-case]
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: One-line description
+      placeholder: e.g. "Two Claudes negotiate an API contract without me relaying"
+    validations:
+      required: true
+
+  - type: textarea
+    id: repos
+    attributes:
+      label: Which Claudes / repos are involved
+      placeholder: e.g. frontend session, api-server session, infra session
+    validations:
+      required: true
+
+  - type: textarea
+    id: transcript
+    attributes:
+      label: Ideal interaction (transcript-style encouraged)
+      placeholder: |
+        [user]: @api-server and @frontend, agree on the shape of /checkout
+        [api-server]: proposing { items: CartItem[], total: number }
+        [frontend]: works for me, but need an error field for validation failures
+        [api-server]: adding error?: string — done
+      description: Doesn't need to be exact. Sketch what success looks like.
+    validations:
+      required: true
+
+  - type: textarea
+    id: protocol_impact
+    attributes:
+      label: Protocol / fanout impact (rough guess, not required to be authoritative)
+      placeholder: |
+        e.g. "I think this needs nothing new — just the existing @mention flow"
+        or "This might need a new verb for structured data exchange"

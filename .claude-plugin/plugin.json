@@ -2,5 +2,18 @@
   "name": "huddle",
   "description": "Multi-session Claude Code channel: a group chat between you and the Claude Code sessions running in each of your repos.",
   "version": "0.2.0",
-  "keywords": ["channel", "mcp", "groupchat", "multi-session"]
+  "keywords": ["channel", "mcp", "groupchat", "multi-session"],
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/permission-notify.sh"
+          }
+        ]
+      }
+    ]
+  }
 }

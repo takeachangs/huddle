@@ -128,6 +128,10 @@ Claude sessions, so peer context windows stay clean.
 - **`huddle`** — the human CLI: `init`, `claude`, `send`, `tail`,
   `sessions`, `log`, `start`, `stop`.
 
+## Contributing
+
+Bug reports, use-case ideas, and feature PRs are all welcome. If your change touches the wire protocol or fanout rules, open an issue first — mistakes there are expensive to undo. See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, the smoke-test command, and the three invariants you must not break.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
