@@ -3,6 +3,7 @@ import { send } from './send.ts'
 import { tail } from './tail.ts'
 import { sessions } from './sessions.ts'
 import { log } from './log.ts'
+import { chat } from './chat.ts'
 import { start } from './start.ts'
 import { stop } from './stop.ts'
 import { init } from './init.ts'
@@ -15,6 +16,7 @@ async function main(): Promise<void> {
     case 'init':     return init(rest)
     case 'claude':   return claude(rest)
     case 'send':     return send(rest)
+    case 'chat':     return chat(rest)
     case 'tail':     return tail(rest)
     case 'sessions': return sessions()
     case 'log':      return log(rest)
@@ -38,6 +40,7 @@ Usage:
   huddle init [--name SESSION]         wire current dir up to huddle (writes .mcp.json)
   huddle claude [...claude args]       launch claude with the channel flag
   huddle send [--to NAME] "message"    send a message (inline @mentions also parsed)
+  huddle chat                           open an interactive fullscreen chat UI
   huddle tail                          stream the live transcript (Ctrl-C to stop)
   huddle sessions                      list connected Claude sessions
   huddle log [--since ISO] [--n N]     read transcript history

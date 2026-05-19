@@ -29,6 +29,7 @@ huddle init [--name NAME]      # write/merge .mcp.json in cwd; idempotent
 huddle claude [...args]        # wraps `claude --dangerously-load-development-channels server:huddle`
 huddled                        # start coordinator (foreground)
 huddle send "@alpha hi"        # send as the human
+huddle chat                    # fullscreen interactive chat
 huddle tail                    # follow live transcript
 huddle sessions                # list connected bridges
 huddle log --n 50              # read transcript history
@@ -96,8 +97,9 @@ because Claude Code does NOT expose any session/conversation ID to MCP servers
 (this is a deliberate isolation boundary; we cannot auto-derive a session
 identity any other way). Override with `HUDDLE_SESSION=name`.
 
-**CLI** (`src/cli/`) — the human-facing client. `send`, `tail`, `sessions`,
-`log`, `start`, `stop`. The MVP "UI" until a TUI/web UI exists.
+**CLI** (`src/cli/`) — the human-facing client. `send`, `chat`, `tail`,
+`sessions`, `log`, `start`, `stop`. `chat` is the fullscreen TTY interface;
+`tail` remains the simple stream for scripts and logs.
 
 ### Wire protocol
 
@@ -158,8 +160,7 @@ The transcript survives daemon restarts. There is no rotation yet.
 When implementing any of these, check the README's "Out of scope" section
 first — that's the canonical list:
 
-- TUI / web UI (server-only by design; protocol is wire-stable for future
-  attachment)
+- Web UI (server-only by design; protocol is wire-stable for future attachment)
 - Multiple rooms (single global `chat_id="main"` constant in `shared/constants.ts`)
 - Permission relay (`claude/channel/permission` capability)
 - Stop-hook enforcement that every inbound got a verb

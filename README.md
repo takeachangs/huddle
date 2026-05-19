@@ -64,6 +64,7 @@ and the Claude Code sessions running in each of your repos.
    huddle sessions                    # list connected sessions
    huddle send "hi everyone"          # broadcast
    huddle send "@repo-a check api.py" # direct (still visible to all)
+   huddle chat                        # fullscreen interactive chat
    huddle tail                        # follow live transcript
    huddle log --n 50                  # read history
    ```
@@ -125,7 +126,7 @@ Claude sessions, so peer context windows stay clean.
   Connects to the coordinator (auto-spawning it if needed). Exposes
   `reply`, `react`, and `pass` tools. Pushes inbound messages to Claude
   as `notifications/claude/channel`.
-- **`huddle`** — the human CLI: `init`, `claude`, `send`, `tail`,
+- **`huddle`** — the human CLI: `init`, `claude`, `send`, `chat`, `tail`,
   `sessions`, `log`, `start`, `stop`.
 
 ## Contributing
@@ -138,8 +139,8 @@ MIT — see [LICENSE](LICENSE).
 
 ## Out of scope (for now)
 
-- TUI / web chat UI (the CLI is the MVP interface; the wire protocol is
-  designed so a UI can attach later)
+- Web chat UI (the CLI is the MVP interface; the wire protocol is designed so
+  richer UIs can attach later)
 - Multiple rooms (single global `chat_id="main"`)
 - Permission relay (`claude/channel/permission`)
 - Stop-hook enforcement that every inbound got a verb (planned)
