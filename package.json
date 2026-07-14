@@ -7,7 +7,8 @@
   "bin": {
     "huddle": "./src/cli/index.ts",
     "huddle-mcp": "./src/bridge/index.ts",
-    "huddled": "./src/coordinator/index.ts"
+    "huddled": "./src/coordinator/index.ts",
+    "huddle-voice": "./src/voice/index.ts"
   },
   "scripts": {
     "start:daemon": "bun src/coordinator/index.ts",
