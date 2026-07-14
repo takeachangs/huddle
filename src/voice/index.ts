@@ -27,10 +27,6 @@ const deps: VoiceDeps = {
     log('waking: opening realtime session')
     const session = await createVoiceSession({
       ...opts,
-      onIdle: () => {
-        log('idle: no reply, going back to sleep')
-        opts.onIdle()
-      },
       onClose: err => {
         log(err ? `session closed with error: ${err.message}` : 'session closed')
         opts.onClose(err)

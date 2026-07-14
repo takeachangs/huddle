@@ -12,7 +12,15 @@ export const SAMPLE_RATE = 24000
 export const VOICE_NAME = 'voice' // @mention that wakes the voice agent
 export const ORCH_NAME = 'orch' // session name of the orchestrator Claude
 
-export const IDLE_MS = 15_000 // no user speech after model finishes → sleep
+// Sleep only after a comfortable stretch of USER SILENCE. Two windows: the
+// normal one, and a longer grace right after activation so the agent doesn't
+// nod off just as the user is gathering their thoughts. Adjust here only —
+// these are the single source of truth for the daemon's idle policy.
+export const IDLE_SILENCE_MS = 20_000 // user silence (with no pending work) → sleep
+export const ACTIVATION_GRACE_MS = 45_000 // first window after wake, before the user has spoken
+// ponytail: heuristic — lets a manual-sleep goodbye drain before we kill audio.
+// A real player-drain signal would be exact; a fixed delay is enough for a one-liner.
+export const GOODBYE_DRAIN_MS = 4_000 // grace for the goodbye to finish on a spoken "go to sleep"
 export const DEBOUNCE_MS = 2_000 // batch reports arriving together into one wake
 export const RECAP_LINES = 20 // huddle log lines seeded into each wake
 
@@ -54,8 +62,10 @@ export interface VoiceSessionOpts {
   onSpeechStart(): void
   /** Model audio out — caller pipes to Player.play(). */
   onAudioChunk(b64pcm: string): void
-  /** No user speech within IDLE_MS after the model finished a response. */
-  onIdle(): void
+  /** The model finished a response turn with no pending tool call. The daemon's
+   *  idle controller uses this as the heartbeat to (re)start the silence
+   *  countdown — it, not this session, owns the timer and the sleep decision. */
+  onTurnComplete(): void
   onClose(err?: Error): void
 }
 
@@ -118,4 +128,19 @@ export const SEND_TOOL: RealtimeTool = {
     },
     required: ['text'],
   },
+}
+
+// Spoken "go to sleep" is handled as a model tool call, not raw transcript
+// matching: the model only fires it when the user is clearly and directly
+// addressing it, which keeps accidental triggers unlikely without any fuzzy
+// phrase parsing on our side.
+export const SLEEP_TOOL: RealtimeTool = {
+  type: 'function',
+  name: 'go_to_sleep',
+  description:
+    'Put yourself to sleep (stop listening) when the user clearly and directly tells you to — ' +
+    'e.g. "go to sleep", "that\'s all", "we\'re done", "stand down". Only when the user is plainly ' +
+    'addressing you and ending the session; never for a passing or hypothetical mention of sleep. ' +
+    'Say a brief one-line goodbye first.',
+  parameters: { type: 'object', properties: {}, required: [] },
 }
