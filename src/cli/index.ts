@@ -40,7 +40,7 @@ function printHelp(): void {
 
 Usage:
   huddle init [--name SESSION]         wire current dir up to huddle (writes .mcp.json)
-  huddle claude [...claude args]       launch claude with the channel flag
+  huddle claude [--voice] [...args]    launch claude on the channel (--voice also opens the console)
   huddle send [--to NAME] "message"    send a message (inline @mentions also parsed)
   huddle chat                           open an interactive fullscreen chat UI
   huddle tail                          stream the live transcript (Ctrl-C to stop)
