@@ -8,6 +8,7 @@ import { start } from './start.ts'
 import { stop } from './stop.ts'
 import { init } from './init.ts'
 import { claude } from './claude.ts'
+import { voice } from './voice.ts'
 
 const [cmd, ...rest] = process.argv.slice(2)
 
@@ -20,6 +21,7 @@ async function main(): Promise<void> {
     case 'tail':     return tail(rest)
     case 'sessions': return sessions()
     case 'log':      return log(rest)
+    case 'voice':    return voice(rest)
     case 'start':    return start()
     case 'stop':     return stop()
     case undefined:
@@ -44,6 +46,7 @@ Usage:
   huddle tail                          stream the live transcript (Ctrl-C to stop)
   huddle sessions                      list connected Claude sessions
   huddle log [--since ISO] [--n N]     read transcript history
+  huddle voice [--port N]              launch the voice web console (default :4425)
   huddle start                         start the coordinator daemon
   huddle stop                          stop the coordinator daemon
   huddle help                          this message
