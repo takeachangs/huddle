@@ -4,7 +4,7 @@
 // response.output_audio.delta for model audio out. NOT the older beta shapes
 // (no top-level voice/input_audio_format, no response.audio.delta).
 
-import { IDLE_MS, REALTIME_URL } from './types.ts'
+import { REALTIME_URL } from './types.ts'
 import type { RealtimeTool, VoiceSession, VoiceSessionOpts } from './types.ts'
 
 function sessionUpdate(instructions: string, tools: RealtimeTool[]) {
@@ -30,26 +30,14 @@ export async function createVoiceSession(opts: VoiceSessionOpts): Promise<VoiceS
 
   const ws = new WebSocket(REALTIME_URL, { headers: { Authorization: `Bearer ${apiKey}` } })
 
-  let idleTimer: ReturnType<typeof setTimeout> | undefined
   let closed = false
 
-  function clearIdle(): void {
-    if (idleTimer) {
-      clearTimeout(idleTimer)
-      idleTimer = undefined
-    }
-  }
-  function armIdle(): void {
-    clearIdle()
-    idleTimer = setTimeout(() => opts.onIdle(), IDLE_MS)
-  }
   function send(obj: unknown): void {
     ws.send(JSON.stringify(obj))
   }
   function finish(err?: Error): void {
     if (closed) return
     closed = true
-    clearIdle()
     opts.onClose(err)
   }
 
@@ -76,16 +64,14 @@ export async function createVoiceSession(opts: VoiceSessionOpts): Promise<VoiceS
         opts.onAudioChunk(msg.delta)
         break
       case 'input_audio_buffer.speech_started':
-        clearIdle()
         send({ type: 'response.cancel' })
         opts.onSpeechStart()
         break
       case 'response.done': {
-        clearIdle()
         const output: any[] = msg.response?.output ?? []
         const calls = output.filter((item: any) => item?.type === 'function_call')
         if (calls.length === 0) {
-          armIdle()
+          opts.onTurnComplete()
         } else {
           for (const call of calls) void handleToolCall(call)
         }
@@ -112,7 +98,6 @@ export async function createVoiceSession(opts: VoiceSessionOpts): Promise<VoiceS
 
   return {
     injectAndSpeak(text: string): void {
-      clearIdle()
       send({
         type: 'conversation.item.create',
         item: { type: 'message', role: 'user', content: [{ type: 'input_text', text }] },
@@ -125,7 +110,6 @@ export async function createVoiceSession(opts: VoiceSessionOpts): Promise<VoiceS
     close(): void {
       if (closed) return
       closed = true
-      clearIdle()
       ws.close()
       opts.onClose()
     },
@@ -151,7 +135,7 @@ if (import.meta.main) {
       totalBytes += Buffer.from(b64pcm, 'base64').length
       resolveAudio?.()
     },
-    onIdle: () => {},
+    onTurnComplete: () => {},
     onClose: () => {},
   })
 
