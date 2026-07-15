@@ -267,7 +267,7 @@ async function wake(reports) {
     }
     const offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
-    const sdpRes = await fetch('https://api.openai.com/v1/realtime/calls?model=gpt-realtime-2.1-mini', {
+    const sdpRes = await fetch('https://api.openai.com/v1/realtime/calls?model=gpt-realtime-2.1', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/sdp' },
       body: offer.sdp,
