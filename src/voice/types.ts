@@ -5,7 +5,7 @@
 // Audio format everywhere: PCM16 mono @ 24kHz, base64-encoded chunks
 // (the Realtime API's native format — no resampling anywhere).
 
-export const MODEL = 'gpt-realtime-2.1-mini'
+export const MODEL = 'gpt-realtime-2.1'
 export const REALTIME_URL = `wss://api.openai.com/v1/realtime?model=${MODEL}`
 export const SAMPLE_RATE = 24000
 
