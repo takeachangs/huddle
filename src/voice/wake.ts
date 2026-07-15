@@ -6,7 +6,17 @@ import { deepStrictEqual } from 'node:assert'
 import { openCli } from '../cli/client.ts'
 import { MENTION_USER } from '../shared/constants.ts'
 import type { ServerFrame } from '../shared/protocol.ts'
-import { DEBOUNCE_MS, ORCH_NAME, RECAP_LINES, SEND_TOOL, VOICE_NAME } from './types.ts'
+import {
+  ACTIVATION_GRACE_MS,
+  DEBOUNCE_MS,
+  GOODBYE_DRAIN_MS,
+  IDLE_SILENCE_MS,
+  ORCH_NAME,
+  RECAP_LINES,
+  SEND_TOOL,
+  SLEEP_TOOL,
+  VOICE_NAME,
+} from './types.ts'
 import type { MicHandle, Player, VoiceDeps, VoiceSession, WakeAction, WakeEvent } from './types.ts'
 
 export class WakeMachine {
@@ -71,6 +81,41 @@ export async function runWakeDaemon(deps: VoiceDeps): Promise<void> {
   let pendingLog: ((frame: Extract<ServerFrame, { t: 'log' }>) => void) | null = null
   let pendingInjects: string[] = []
 
+  // ── Idle policy ────────────────────────────────────────────────────────────
+  // The ONE place that decides "should we sleep now?". Sleep fires only after a
+  // stretch of USER SILENCE — ACTIVATION_GRACE_MS for the first window (before
+  // the user has spoken, so we don't cut them off just as they're about to talk)
+  // then IDLE_SILENCE_MS — and NEVER while a request is outstanding (waiting on
+  // @orch or a tool call): that countdown is held, not ticking, and the next
+  // completed turn re-arms it once the wait clears. A spoken "go to sleep"
+  // (sleepRequested) bypasses the window and sleeps right after the goodbye turn.
+  let idleTimer: ReturnType<typeof setTimeout> | null = null
+  let waiting = false // outstanding @orch request → hold the countdown
+  let everSpoke = false // user has spoken at least once this session
+  let sleepRequested = false // user asked to sleep → sleep after the goodbye turn
+
+  function clearIdle(): void {
+    if (idleTimer) {
+      clearTimeout(idleTimer)
+      idleTimer = null
+    }
+  }
+  function armIdle(): void {
+    clearIdle()
+    const window = everSpoke ? IDLE_SILENCE_MS : ACTIVATION_GRACE_MS
+    idleTimer = setTimeout(() => {
+      idleTimer = null
+      if (waiting) return // held — a later completed turn re-arms once the wait clears
+      dispatch({ t: 'session_idle' })
+    }, window)
+  }
+  function resetIdle(): void {
+    clearIdle()
+    waiting = false
+    everSpoke = false
+    sleepRequested = false
+  }
+
   function stopAudio(): void {
     mic?.stop()
     player?.stop()
@@ -78,6 +123,7 @@ export async function runWakeDaemon(deps: VoiceDeps): Promise<void> {
     player = null
     session = null
     pendingInjects = []
+    resetIdle()
   }
 
   function dispatch(ev: WakeEvent): void {
@@ -113,29 +159,53 @@ export async function runWakeDaemon(deps: VoiceDeps): Promise<void> {
         const instructions = [
           "You are the user's terse voice liaison to their Claude Code orchestrator. " +
             'Speak briefly. Use the send_to_orchestrator tool for anything needing real ' +
-            'work. Never fabricate results.',
+            'work. Never fabricate results. When the user clearly tells you to go to ' +
+            'sleep or that they are done, call go_to_sleep after a brief goodbye.',
           'Recent channel history:',
           ...recapLines,
           'New report(s) to relay to the user now:',
           ...action.reports,
         ].join('\n')
 
+        resetIdle()
         player = deps.createPlayer()
         session = await deps.createVoiceSession({
           instructions,
-          tools: [SEND_TOOL],
+          tools: [SEND_TOOL, SLEEP_TOOL],
           onToolCall: async (name, args) => {
+            if (name === 'go_to_sleep') {
+              // Manual sleep: acknowledge and sleep on the next completed turn —
+              // we don't cut a reply off mid-sentence, but we also don't wait out
+              // the silence window. If an @orch request was still outstanding, its
+              // reply just re-wakes us later, so sleeping now loses nothing.
+              sleepRequested = true
+              return 'Acknowledged — give the user a brief one-line goodbye, then stop.'
+            }
             if (name !== 'send_to_orchestrator') return `unknown tool: ${name}`
             const { text } = args as { text: string }
             cli.send({ t: 'send', text, mentions: [ORCH_NAME] })
+            waiting = true // hold the idle countdown until the reply lands
             return 'sent — the reply will arrive asynchronously.'
           },
           onAudioChunk: b64pcm => player?.play(b64pcm),
           onSpeechStart: () => {
             player?.flush()
+            everSpoke = true
+            sleepRequested = false // barge-in after "go to sleep" = changed mind, stay awake
+            clearIdle() // never sleep while speech is starting/in progress
             dispatch({ t: 'user_spoke' })
           },
-          onIdle: () => dispatch({ t: 'session_idle' }),
+          onTurnComplete: () => {
+            if (sleepRequested) {
+              // Let the goodbye finish playing, then sleep — prompt vs the full
+              // silence window, but the user still hears the acknowledgment.
+              clearIdle()
+              idleTimer = setTimeout(() => {
+                idleTimer = null
+                dispatch({ t: 'session_idle' })
+              }, GOODBYE_DRAIN_MS)
+            } else armIdle()
+          },
           onClose: () => dispatch({ t: 'session_closed' }),
         })
         mic = deps.startMic(chunk => session?.sendMicChunk(chunk))
@@ -146,6 +216,7 @@ export async function runWakeDaemon(deps: VoiceDeps): Promise<void> {
       }
 
       case 'inject':
+        waiting = false // a reply / new info landed → release the held countdown
         // ponytail: reports racing the async spawn are queued, not dropped
         if (session) session.injectAndSpeak(action.text)
         else pendingInjects.push(action.text)
