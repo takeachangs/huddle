@@ -15,7 +15,7 @@ and the Claude Code sessions running in each of your repos.
                         └──────┬───────┘
                                │
           ┌────────────────────┴────────────────────┐
-          │           huddled (daemon)           │
+          │           huddled (daemon)              │
           │  transcript • routing • live registry   │
           └───┬────────────┬────────────┬───────────┘
               │            │            │
